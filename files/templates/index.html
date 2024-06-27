@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Upload</title>
+</head>
+<body>
+    <h1>Upload Image</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="filename">Filename:</label>
+        <input type="text" id="filename" name="filename" required/><br>
+        <label for="project_id">Project ID:</label>
+        <input type="text" id="project_id" name="project_id" required/><br>
+        <label for="fileInput">Select file:</label>
+        <input type="file" id="fileInput" name="file" required/><br>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="message"></div>
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const message = document.getElementById('message');
+        let apiUrl = "/api/v1/files";
+
+        uploadForm.onsubmit = async (event) => {
+            event.preventDefault();
+            const file = fileInput.files[0];
+            const filename = document.getElementById('filename').value;
+            const project_id = document.getElementById('project_id').value;
+
+            const response = await fetch(`/api/v1/files/upload/?filename=${encodeURIComponent(filename)}&project_id=${encodeURIComponent(project_id)}`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                message.textContent = `Failed to get upload link: ${response.statusText}`;
+                return;
+            }
+
+            const result = await response.json();
+            const uploadLink = apiUrl + result.data.upload_link;
+            // console.log(`result: ${uploadLink}`); //for debag
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const uploadResponse = await fetch(uploadLink, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!uploadResponse.ok) {
+                message.textContent = `Failed to upload file: ${uploadResponse.statusText}`;
+                return;
+            }
+
+            const uploadResult = await uploadResponse.json();
+            message.textContent = uploadResult.message;
+        };
+
+        const socket = new WebSocket('ws://localhost:8000/ws/111');
+        socket.onmessage = function(event) {
+            message.textContent = event.data;
+        };
+    </script>
+</body>
+</html>

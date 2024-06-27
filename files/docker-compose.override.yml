@@ -1,0 +1,21 @@
+version: '3'
+
+
+services:
+
+  minio:
+    ports:
+      - "9001:9000"
+      - "9004:9001"
+
+  files_service:
+    ports:
+      - "8080:8000"
+
+  files_pg:
+    ports:
+      - "25432:5432"
+
+  files_redis:
+    ports:
+      - "26379:6379"

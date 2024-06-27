@@ -1,0 +1,46 @@
+version: '3'
+
+
+services:
+
+  minio:
+    image: minio/minio
+    volumes:
+      - data1:/data
+    env_file:
+      - .env
+    command: server --console-address ":9001" /data
+    networks:
+      - backend
+
+  files_service:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - minio
+      - files_pg
+      - files_redis
+    networks:
+      - backend
+
+  files_pg:
+    image: postgres:alpine
+    env_file:
+      - .env
+    networks:
+      - backend
+
+  files_redis:
+    image: redis:alpine
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  data1:
+  auth_pg_data:
+    driver: local
